@@ -1,9 +1,5 @@
 # Makefile for managing Docker containers
 
-# Define default target
-.PHONY: all
-all: build up
-
 # Build the Docker images
 .PHONY: build
 build:

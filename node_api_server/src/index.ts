@@ -1,18 +1,26 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import MongooseConnection from './config/db';
+import { conversationRoutes } from './routes/conversation-routes';
 
 dotenv.config();
 
 const app = express();
 app.use(express.json());
 
-const port = process.env.NODE_PORT || 3000;
-console.log('mongo', process.env.MONGO_URL )
+const PORT = process.env.NODE_PORT || 3000;
 
-app.get('/', (req, res) => {
+app.get('/', (_, res) => {
   res.send('Node.js API Server is running!');
 });
 
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
+// registering routes
+app.use('/api/conversations', conversationRoutes);
+
+(async () => {
+  await MongooseConnection.getInstance().connect();
+
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+})();
