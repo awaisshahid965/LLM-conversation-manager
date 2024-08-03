@@ -1,0 +1,50 @@
+# Node.js
+node_modules/
+dist/
+.env
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# TypeScript
+*.tsbuildinfo
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+venv/
+*.egg-info/
+*.eggs
+*.nox/
+*.coverage
+*.hypothesis/
+.coverage.*
+.cache
+nosetests.xml
+*.tox
+*.pytest_cache
+*.mypy_cache
+.dmypy.json
+.pytest_cache
+*.pylint.d
+
+# Docker
+docker-compose.override.yml
+docker-compose.local.yml
+
+# IDEs
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS specific
+.DS_Store
+Thumbs.db
