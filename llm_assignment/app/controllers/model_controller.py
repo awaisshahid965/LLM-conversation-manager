@@ -1,50 +1,64 @@
+import requests
+import os
+import logging
 from flask import request, jsonify
 from ..models.model_loader import ModelLoader, ModelType
 
+logging.basicConfig(level=logging.DEBUG)
+
 class ModelController:
-    conversation_contexts = {}
+    # Environment variable for the conversation history endpoint
+    conversation_endpoint = os.getenv('conversation_endpoint', '')
 
     @staticmethod
-    def select_model():
-        data = request.json
-        user_id = data['user_id']
-        model_name = data['model']
-        
+    def get_user_history(user_id):
         try:
-            model_type = ModelType[model_name.upper()]
-        except KeyError:
-            return jsonify({"error": "Invalid model type."}), 400
-        
-        ModelController.conversation_contexts[user_id] = {'model': model_type, 'history': []}
-        return jsonify({"message": f"Model {model_name} selected for user {user_id}."})
+            logging.debug(f'{ModelController.conversation_endpoint}/history?user_id={user_id}')
+            response = requests.get(f'{ModelController.conversation_endpoint}/history?user_id={user_id}')
+            response.raise_for_status()
+            data = response.json()
+            return data
+        except requests.RequestException as e:
+            print(f"Error fetching history from API: {e}")
+            return []
 
     @staticmethod
     def query():
-        data = request.json
-        user_id = data['user_id']
-        question = data['question']
-        
-        if user_id not in ModelController.conversation_contexts:
-            return jsonify({"error": "Model not selected for user."}), 400
-        
-        model_type = ModelController.conversation_contexts[user_id]['model']
-        model = ModelLoader.models[model_type]['model']
-        tokenizer = ModelLoader.models[model_type]['tokenizer']
-        
-        ModelController.conversation_contexts[user_id]['history'].append({"question": question})
-        
-        # Generate response
-        inputs = tokenizer(question, return_tensors='pt')
-        outputs = model.generate(**inputs)
-        answer = tokenizer.decode(outputs[0], skip_special_tokens=True)
-        
-        ModelController.conversation_contexts[user_id]['history'].append({"answer": answer})
-        
-        return jsonify({"answer": answer})
+        try:
+            data = request.json
+            
+            if not data or 'user_id' not in data or 'question' not in data:
+                return jsonify({"error": "Invalid request data."}), 400
 
-    @staticmethod
-    def history():
-        user_id = request.args.get('user_id')
-        if user_id not in ModelController.conversation_contexts:
-            return jsonify({"error": "No history found for user."}), 400
-        return jsonify(ModelController.conversation_contexts[user_id]['history'])
+            user_id = data['user_id']
+            question = data['question']
+            
+            # Fetch history from API
+            history = ModelController.get_user_history(user_id)
+            conversation_history = history.get('history', [])
+
+            model_type = ModelType[history.get('model', ModelType.MISTRAL).upper()]
+            model = ModelLoader.models[model_type]
+            
+            # Prepare input with history and current question
+            context = "\n".join([f"Q: {turn['question']}\nA: {turn.get('answer', '')}" for turn in conversation_history])
+            context += f"\nQ: {question}\nA: "
+
+            # Generate response
+            response = model(context, max_new_tokens=1500, stream=False)
+
+            # Extract the answer from the response
+            answer = "".join(chunk for chunk in response).strip()
+            logging.debug(f'answer, {answer}')
+
+            # Ensure the answer only contains the response part
+            if 'A: ' in answer:
+                answer = answer.split('A: ', 1)[1].strip()
+
+            # Update conversation history with the model's response
+            conversation_history.append({"answer": answer.strip()})
+
+            return jsonify({"answer": answer.strip()})
+        except Exception as e:
+            logging.error(f'Exception occurred: {e}', exc_info=True)
+            return jsonify({"error": str(e)}), 500

@@ -5,10 +5,12 @@ services:
     volumes:
       - ./llm_assignment:/app
     ports:
-      - "5000:5000"
+      - "${PYTHON_PORT}:${PYTHON_PORT}"
     command: ${PYTHON_COMMAND}
     env_file:
       - .env
+    environment:
+      - conversation_endpoint=http://node_server:${NODE_PORT}/api/conversations
 
   node_server:
     build: ./node_api_server
@@ -16,9 +18,11 @@ services:
     volumes:
       - ./node_api_server:/app
     ports:
-      - "3000:3000"
+      - "${NODE_PORT}:${NODE_PORT}"
     command: ${NODE_COMMAND}
     depends_on:
       - python_server
     env_file:
       - .env
+    environment:
+      - ai_endpoint=http://python_server:${PYTHON_PORT}/api/ai
