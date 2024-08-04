@@ -41,19 +41,20 @@ class ModelController:
             model = ModelLoader.models[model_type]
             
             # Prepare input with history and current question
-            context = "\n".join([f"Q: {turn['question']}\nA: {turn.get('answer', '')}" for turn in conversation_history])
-            context += f"\nQ: {question}\nA: "
+            context = "\n".join([f"```Question:``` {turn['question']}\n```Answer:``` {turn.get('answer', '')}" for turn in conversation_history])
+            context += f"\n```Question:``` {question}\n```Answer:```"
 
             # Generate response
-            response = model(context, max_new_tokens=1500, stream=False)
+            response = model(context, max_new_tokens=250, stream=False)
 
             # Extract the answer from the response
             answer = "".join(chunk for chunk in response).strip()
             logging.debug(f'answer, {answer}')
 
             # Ensure the answer only contains the response part
-            if 'A: ' in answer:
-                answer = answer.split('A: ', 1)[1].strip()
+            # Use markers to extract the specific answer part
+            if '```Question:```' in answer:
+                answer = answer.split('```Question:```', 1)[0].strip()
 
             # Update conversation history with the model's response
             conversation_history.append({"answer": answer.strip()})
