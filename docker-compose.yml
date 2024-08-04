@@ -26,3 +26,18 @@ services:
       - .env
     environment:
       - ai_endpoint=http://python_server:${PYTHON_PORT}/api/ai
+  
+  frontend:
+    build: ./distributed-llm-frontend
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:${NODE_PORT}/api/conversations
+    depends_on:
+      - node_server
+    env_file:
+      - .env
+    volumes:
+      - ./distributed-llm-frontend:/app/frontend
+    command: ${REACT_COMMAND}

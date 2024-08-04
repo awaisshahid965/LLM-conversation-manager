@@ -10,7 +10,7 @@ build:
 .PHONY: up
 up:
 	@echo "Starting Docker containers..."
-	docker-compose up -d
+	docker-compose up --build
 
 # Stop the Docker containers
 .PHONY: down
@@ -29,6 +29,12 @@ logs-python:
 logs-node:
 	@echo "Showing logs for Node.js server..."
 	docker-compose logs -f node_server
+
+# Show logs for Node.js server
+.PHONY: logs-react
+logs-react:
+	@echo "Showing logs for React.js server..."
+	docker-compose logs -f frontend
 
 # Execute commands in the running Python container
 .PHONY: exec-python
