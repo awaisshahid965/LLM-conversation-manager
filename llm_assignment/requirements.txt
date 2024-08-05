@@ -1,4 +1,5 @@
 flask
-transformers
 python-dotenv
 watchdog
+ctransformers
+flask-cors

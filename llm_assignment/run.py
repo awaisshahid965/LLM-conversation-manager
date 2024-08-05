@@ -1,14 +1,7 @@
-from flask import Flask
-from dotenv import load_dotenv
+from app import create_app
 import os
 
-load_dotenv()
-
-app = Flask(__name__)
-
-@app.route('/')
-def index():
-    return "LLM Assignment Server is running!"
+app = create_app()
 
 if __name__ == '__main__':
     port = int(os.getenv("PYTHON_PORT", 5000))
