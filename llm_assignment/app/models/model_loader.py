@@ -12,12 +12,12 @@ class ModelLoader:
     @classmethod
     def load_models(cls):
         cls.models[ModelType.LLAMA2] = AutoModelForCausalLM.from_pretrained(
-            Config.LLAMA2_MODEL_PATH,
-            model_file=Config.LLAMA2_TOKENIZER_PATH,
+            Config.LLAMA2_MODEL_NAME,
+            model_file=Config.LLAMA2_MODEL_PATH,
             gpu_layers=0
         )
         cls.models[ModelType.MISTRAL] = AutoModelForCausalLM.from_pretrained(
-            Config.MISTRAL_MODEL_PATH,
-            model_file=Config.MISTRAL_TOKENIZER_PATH,
+            Config.MISTRAL_MODEL_NAME,
+            model_file=Config.MISTRAL_MODEL_PATH,
             gpu_layers=0
         )
