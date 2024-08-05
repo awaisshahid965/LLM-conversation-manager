@@ -7,8 +7,10 @@ interface Message {
 
 export const useChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
+  const [messageSubmitting, setMessageSubmitting] = useState<boolean>(false);
 
   const sendMessage = async (question: string, user_id: string) => {
+    setMessageSubmitting(true)
     setMessages([...messages, { question, answer: '...' }]);
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL}/query`, {
@@ -28,10 +30,12 @@ export const useChat = () => {
       }
     } catch (error) {
       setMessages((msgs) => msgs.filter((_, idx) => idx !== msgs.length - 1));
+    } finally {
+      setMessageSubmitting(false)
     }
   };
 
   const clearMessages = () => setMessages([]);
 
-  return { messages, sendMessage, clearMessages };
+  return { messages, messageSubmitting, sendMessage, clearMessages };
 };

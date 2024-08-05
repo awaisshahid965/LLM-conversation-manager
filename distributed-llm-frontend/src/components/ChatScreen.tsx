@@ -7,7 +7,7 @@ import { useChat } from '../hooks/useChat';
 
 const Chat: React.FC = () => {
   const [question, setQuestion] = useState('');
-  const { messages, sendMessage, clearMessages } = useChat();
+  const { messages, messageSubmitting, sendMessage, clearMessages } = useChat();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const user_id = searchParams.get('user_id') ?? ''
@@ -32,11 +32,21 @@ const Chat: React.FC = () => {
       body: JSON.stringify({ model, user_id })
     });
     clearMessages();
+    navigate(`/chat?model=${model}&user_id=${user_id}`);
   };
+
+  const handleClearMessages = async () => {
+    await fetch(`${process.env.REACT_APP_API_URL}/select_model`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model, user_id })
+    });
+    clearMessages();
+  }
 
   return (
     <div className="flex flex-col items-center h-screen">
-      <div className="flex w-full justify-between p-4">
+      <div className="flex w-full justify-center gap-8 p-4">
         <Select
           options={[
             { value: 'llama2', label: 'Llama2' },
@@ -46,14 +56,14 @@ const Chat: React.FC = () => {
           className="w-1/3"
           value={model}
         />
-        <Button onClick={clearMessages}>Clear Chat</Button>
-        <Button onClick={() => navigate('/')}>Change Model</Button>
+        <Button onClick={handleClearMessages}>Clear Chat</Button>
+        <Button onClick={() => navigate('/')}>Go To Home Screen</Button>
       </div>
-      <div className="flex flex-col items-center w-full p-4 overflow-auto">
+      <div className="flex flex-col flex-grow items-center w-full p-4 overflow-auto">
         {messages.map((msg, idx) => (
           <div key={idx} className="w-full p-2 my-2 bg-gray-200 rounded">
             <p><strong>Q:</strong> {msg.question}</p>
-            <p><strong>A:</strong> {msg.answer}</p>
+            <p><strong>A:</strong> {msg.answer === '...' ? <div className="loader"></div> : msg.answer}</p>
           </div>
         ))}
       </div>
@@ -65,7 +75,7 @@ const Chat: React.FC = () => {
           placeholder="Type your question"
           className="flex-grow mr-4"
         />
-        <Button onClick={handleSend}>Ask</Button>
+        <Button onClick={handleSend} disabled={messageSubmitting} className={messageSubmitting ? 'opacity-70' : ''}>Ask</Button>
       </div>
     </div>
   );
